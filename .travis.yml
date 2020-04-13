@@ -1,0 +1,23 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t gbiccard/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true gbiccard/react-test npm test
+
+after_success:
+    - docker build -t gbiccard/multi-client ./client
+    - docker build -t gbiccard/multi-nginx ./nginx
+    - docker build -t gbiccard/multi-server ./server
+    - docker build -t gbiccard/multi-worker ./worker
+
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+    - docker push gbiccard/multi-client
+    - docker push gbiccard/multi-nginx
+    - docker push gbiccard/multi-server
+    - docker push gbiccard/multi-worker
+    
